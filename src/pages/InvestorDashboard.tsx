@@ -6,18 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { TrendingUp, Users, DollarSign, ArrowUpRight, ArrowDownRight, Plus, FileText, Home } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const InvestorDashboard = () => {
   const [selectedClient, setSelectedClient] = useState("all");
 
-  // Mock data
+  // Mock data - Incluye ganancias y pérdidas
   const clients = [
-    { id: "1", name: "Juan Pérez", balance: 125000, invested: 100000, returns: 25000 },
-    { id: "2", name: "María García", balance: 85000, invested: 80000, returns: 5000 },
-    { id: "3", name: "Carlos López", balance: 200000, invested: 180000, returns: 20000 },
+    { id: "1", name: "Juan Pérez", balance: 125000, invested: 100000, returns: 25000, losses: 0 },
+    { id: "2", name: "María García", balance: 75000, invested: 80000, returns: 8000, losses: -13000 },
+    { id: "3", name: "Carlos López", balance: 200000, invested: 180000, returns: 20000, losses: 0 },
+    { id: "4", name: "Ana Martínez", balance: 92000, invested: 100000, returns: 5000, losses: -13000 },
   ];
 
   const performanceData = [
@@ -26,7 +28,17 @@ const InvestorDashboard = () => {
     { month: "Mar", value: 295000 },
     { month: "Abr", value: 340000 },
     { month: "May", value: 370000 },
-    { month: "Jun", value: 410000 },
+    { month: "Jun", value: 492000 },
+  ];
+
+  // Datos de crecimiento por cliente
+  const clientGrowthData = [
+    { month: "Ene", "Juan Pérez": 100000, "María García": 80000, "Carlos López": 180000, "Ana Martínez": 100000 },
+    { month: "Feb", "Juan Pérez": 105000, "María García": 78000, "Carlos López": 185000, "Ana Martínez": 98000 },
+    { month: "Mar", "Juan Pérez": 110000, "María García": 75000, "Carlos López": 190000, "Ana Martínez": 95000 },
+    { month: "Abr", "Juan Pérez": 115000, "María García": 74000, "Carlos López": 195000, "Ana Martínez": 93000 },
+    { month: "May", "Juan Pérez": 120000, "María García": 76000, "Carlos López": 198000, "Ana Martínez": 94000 },
+    { month: "Jun", "Juan Pérez": 125000, "María García": 75000, "Carlos López": 200000, "Ana Martínez": 92000 },
   ];
 
   const distributionData = [
@@ -40,13 +52,16 @@ const InvestorDashboard = () => {
 
   const recentMovements = [
     { id: 1, client: "Juan Pérez", type: "Inversión", amount: 5000, date: "2025-10-30", status: "Completado" },
-    { id: 2, client: "María García", type: "Retiro", amount: -2000, date: "2025-10-29", status: "Procesando" },
+    { id: 2, client: "María García", type: "Pérdida", amount: -5000, date: "2025-10-29", status: "Completado" },
     { id: 3, client: "Carlos López", type: "Ganancia", amount: 3500, date: "2025-10-28", status: "Completado" },
+    { id: 4, client: "Ana Martínez", type: "Pérdida", amount: -8000, date: "2025-10-27", status: "Completado" },
   ];
 
   const totalBalance = clients.reduce((sum, client) => sum + client.balance, 0);
   const totalInvested = clients.reduce((sum, client) => sum + client.invested, 0);
   const totalReturns = clients.reduce((sum, client) => sum + client.returns, 0);
+  const totalLosses = clients.reduce((sum, client) => sum + client.losses, 0);
+  const netReturns = totalReturns + totalLosses;
 
   return (
     <div className="min-h-screen bg-background">
@@ -96,13 +111,19 @@ const InvestorDashboard = () => {
 
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Rendimientos</CardTitle>
-              <ArrowUpRight className="h-4 w-4 text-success" />
+              <CardTitle className="text-sm font-medium">Rendimientos Netos</CardTitle>
+              {netReturns >= 0 ? (
+                <ArrowUpRight className="h-4 w-4 text-success" />
+              ) : (
+                <ArrowDownRight className="h-4 w-4 text-destructive" />
+              )}
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-success">${totalReturns.toLocaleString()}</div>
-              <p className="text-xs text-success mt-1">
-                +{((totalReturns / totalInvested) * 100).toFixed(1)}% ROI
+              <div className={`text-2xl font-bold ${netReturns >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {netReturns >= 0 ? '+' : ''}${netReturns.toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ganancias: ${totalReturns.toLocaleString()} | Pérdidas: ${totalLosses.toLocaleString()}
               </p>
             </CardContent>
           </Card>
@@ -177,6 +198,28 @@ const InvestorDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Crecimiento por Cliente</CardTitle>
+                <CardDescription>Evolución individual de cada cuenta</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={clientGrowthData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                    <YAxis stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))" }} />
+                    <Legend />
+                    <Line type="monotone" dataKey="Juan Pérez" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="María García" stroke="hsl(var(--destructive))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="Carlos López" stroke="hsl(var(--success))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="Ana Martínez" stroke="hsl(var(--warning))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="clients" className="space-y-6">
@@ -198,26 +241,72 @@ const InvestorDashboard = () => {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Balance Total</TableHead>
                       <TableHead>Invertido</TableHead>
-                      <TableHead>Rendimientos</TableHead>
+                      <TableHead>Ganancias</TableHead>
+                      <TableHead>Pérdidas</TableHead>
                       <TableHead>ROI</TableHead>
                       <TableHead>Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell className="font-medium">{client.name}</TableCell>
-                        <TableCell>${client.balance.toLocaleString()}</TableCell>
-                        <TableCell>${client.invested.toLocaleString()}</TableCell>
-                        <TableCell className="text-success">${client.returns.toLocaleString()}</TableCell>
-                        <TableCell className="text-success">
-                          +{((client.returns / client.invested) * 100).toFixed(1)}%
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm">Ver Detalles</Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {clients.map((client) => {
+                      const netReturn = client.returns + client.losses;
+                      const roi = ((netReturn / client.invested) * 100).toFixed(1);
+                      return (
+                        <TableRow key={client.id}>
+                          <TableCell className="font-medium">{client.name}</TableCell>
+                          <TableCell>${client.balance.toLocaleString()}</TableCell>
+                          <TableCell>${client.invested.toLocaleString()}</TableCell>
+                          <TableCell className="text-success">${client.returns.toLocaleString()}</TableCell>
+                          <TableCell className="text-destructive">{client.losses < 0 ? `$${Math.abs(client.losses).toLocaleString()}` : '$0'}</TableCell>
+                          <TableCell className={parseFloat(roi) >= 0 ? "text-success" : "text-destructive"}>
+                            {parseFloat(roi) >= 0 ? '+' : ''}{roi}%
+                          </TableCell>
+                          <TableCell>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">Ver Detalles</Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Detalles de {client.name}</DialogTitle>
+                                  <DialogDescription>
+                                    Información detallada del portafolio
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4 pt-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Balance Total</p>
+                                      <p className="text-2xl font-bold">${client.balance.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Invertido</p>
+                                      <p className="text-2xl font-bold">${client.invested.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Ganancias</p>
+                                      <p className="text-2xl font-bold text-success">${client.returns.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-sm text-muted-foreground">Pérdidas</p>
+                                      <p className="text-2xl font-bold text-destructive">
+                                        {client.losses < 0 ? `-$${Math.abs(client.losses).toLocaleString()}` : '$0'}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="pt-4 border-t">
+                                    <p className="text-sm text-muted-foreground">ROI Total</p>
+                                    <p className={`text-3xl font-bold ${parseFloat(roi) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                      {parseFloat(roi) >= 0 ? '+' : ''}{roi}%
+                                    </p>
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </CardContent>
