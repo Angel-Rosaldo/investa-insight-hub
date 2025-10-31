@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico"],
       manifest: {
         name: "Portafolio Transparente",
-        short_name: "InvestTrack",
+        short_name: "Portafolio Transparente",
         description: "Plataforma de gestión de inversiones y fintech",
         theme_color: "#3B82F6",
         background_color: "#ffffff",
