@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico"],
       manifest: {
-        name: "InvestTrack Pro",
+        name: "Portafolio Transparente",
         short_name: "InvestTrack",
         description: "Plataforma de gestión de inversiones y fintech",
         theme_color: "#3B82F6",

@@ -11,7 +11,7 @@ const Index = () => {
           <div className="inline-flex items-center gap-2 mb-6">
             <TrendingUp className="h-12 w-12 text-primary" />
             <h1 className="text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              InvestTrack Pro
+              Portafolio Transparente
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
